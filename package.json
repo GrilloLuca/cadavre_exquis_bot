@@ -1,0 +1,19 @@
+{
+  "name": "splitbot",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node ./app.js",
+    "dev": "BOT_TOKEN='1019091198:AAEvrg-s9MLTBrVv79wabMMP0_YT7QmQlFA' nodemon ./app.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "firebase-admin": "^8.9.2",
+    "firebase-functions": "^3.3.0",
+    "telegraf": "^3.36.0",
+    "telegraf-command-parts": "^1.0.3"
+  }
+}
