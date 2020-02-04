@@ -6,7 +6,6 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node ./app.js",
-    "dev": "BOT_TOKEN='1019091198:AAEvrg-s9MLTBrVv79wabMMP0_YT7QmQlFA' nodemon ./app.js"
   },
   "author": "",
   "license": "ISC",
