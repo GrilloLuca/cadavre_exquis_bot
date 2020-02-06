@@ -45,10 +45,20 @@ server.listen(port, hostname, () => {
     }
   })
   
+  bot.command('stories', ctx => {
+
+    firestore.stories(ctx.message.from.id, snapshot => {
+      
+      snapshot.forEach((doc) => {
+        console.log(doc.data().text);
+      })
+    })
+    
+  })
+
   bot.command('read', ctx => {
 
-    ctx.reply(`reading channel ${firestore.channel}`)
-    firestore.read(snapshot => {
+    let channel = firestore.read(snapshot => {
       
       var str = []
       snapshot.forEach((doc) => {
@@ -58,6 +68,7 @@ server.listen(port, hostname, () => {
       ctx.reply(str.join('\n'))
 
     });
+    ctx.reply(`reading channel ${channel}`)
 
   });
 
