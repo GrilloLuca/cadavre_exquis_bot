@@ -1,9 +1,6 @@
 module.exports = {
 
-    db: null,
     init: () => {
-
-        this.story_id = 'JlbfkgZztevHbzu5oOGk'
 
         const admin = require('firebase-admin');
         let serviceAccount = require('./serviceAccountKey.json');
@@ -14,7 +11,16 @@ module.exports = {
         });
         
         db = admin.firestore()
-        
+        db.collection('stories')
+            .where('complete', '==', false)
+            .limit(1)
+            .get()
+            .then(snapshot => {
+                snapshot.forEach(doc => {
+                    this.story_id = doc.id
+                })
+            })
+
     },
     setStory: (storyName, callback) => {
 
@@ -24,6 +30,7 @@ module.exports = {
             if(snapshot.empty) {
                 story_ref.set({
                     name: storyName,
+                    complete: false
                 });
             }
             this.story_id = story_ref.id
@@ -31,17 +38,35 @@ module.exports = {
         });
     
     },
-    last: (user, callback) => {
-        let user_ref = db.collection('users').doc(`${user.id}`);
-        let story_ref = db.collection('stories').doc(`${this.story_id}`);
-
-        db.collection(`chapters`)
-            .where('created_by', '==', user_ref)
-            .where('story', '==', story_ref)
-            .orderBy('timestamp', 'desc')
+    last: (callback) => {
+        db.collection('stories')
+            .where('complete', '==', false)
             .limit(1)
             .get()
-            .then(callback)
+            .then(snapshot => {
+                snapshot.forEach(doc => {
+                    db.collection(`chapters`)
+                        .where('story', '==', doc.ref)
+                        .orderBy('timestamp', 'desc')
+                        .limit(1)
+                        .get()
+                        .then(chapters => 
+                            chapters.forEach(doc => callback(doc.data())
+                        ))
+                  });
+            })
+        
+    },
+    getIncompleteStoryId: (callback) => {
+        db.collection('stories')
+            .where('complete', '==', false)
+            .limit(1)
+            .get()
+            .then(snapshot => {
+                snapshot.forEach(doc => {
+                    callback(doc.data().id)
+                })
+            })
     },
     read: (user, callback) => {
         let user_ref = db.collection('users').doc(`${user.id}`);
@@ -58,6 +83,7 @@ module.exports = {
     },
     write: (user, text) => {
 
+        console.log(`story_id: ${this.story_id}`)
         let user_ref = db.collection('users').doc(`${user.id}`);
         user_ref.set(user);
 

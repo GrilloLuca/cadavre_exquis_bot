@@ -66,16 +66,14 @@ server.listen(port, hostname, () => {
 
   bot.command('last', ctx => {
 
-    let arr = []
-    firestore.last(ctx.message.from, snapshot => {
-      
-      snapshot.forEach(doc => 
-        arr.push(doc.data().text)
-      )
-      
-      ctx.reply(arr.join('\n'))
+    firestore.last(doc => {
+        
+      firestore.story_id = doc.story.id
+        console.log(JSON.stringify(doc.story.id))
+        ctx.reply(doc.text)
 
-    });
+    })
+    
   });
 
   bot.on('text', ctx => {
