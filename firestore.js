@@ -1,8 +1,9 @@
-var db = null
-
 module.exports = {
 
+    db: null,
     init: () => {
+
+        this.story_id = 'JlbfkgZztevHbzu5oOGk'
 
         const admin = require('firebase-admin');
         let serviceAccount = require('./serviceAccountKey.json');
@@ -15,39 +16,60 @@ module.exports = {
         db = admin.firestore()
         
     },
-    setChannel: (channelName, callback) => {
-        this.channel = channelName
+    setStory: (storyName, callback) => {
 
-        db.collection(channelName).get().then(snapshot => {
+        let story_ref = db.collection('stories').doc();
+
+        db.collection(storyName).get().then(snapshot => {
+            if(snapshot.empty) {
+                story_ref.set({
+                    name: storyName,
+                });
+            }
+            this.story_id = story_ref.id
             callback(snapshot.empty);
         });
     
     },
-    read: (callback) => {
-        let channel = !!this.channel ? this.channel : 'channel'
-        db.collection(channel).orderBy('date').get()
+    last: (user, callback) => {
+        let user_ref = db.collection('users').doc(`${user.id}`);
+        let story_ref = db.collection('stories').doc(`${this.story_id}`);
+
+        db.collection(`chapters`)
+            .where('created_by', '==', user_ref)
+            .where('story', '==', story_ref)
+            .orderBy('timestamp', 'desc')
+            .limit(1)
+            .get()
             .then(callback)
-            .catch((err) => {
-                console.log('Error getting documents', err);
-            });
-        return channel
-    }, 
-    stories: (id, callback) => {
-        console.log(id)
-        // db.collection().where('created_by', '==', id).get()
-        //     .then(callback)
-        //     .catch((err) => {
-        //         console.log('Error getting documents', err);
-        //     });
+    },
+    read: (user, callback) => {
+        let user_ref = db.collection('users').doc(`${user.id}`);
+        let story_ref = db.collection('stories').doc(`${this.story_id}`);
+
+        db.collection(`chapters`)
+            .where('created_by', '==', user_ref)
+            .where('story', '==', story_ref)
+            .orderBy('timestamp')
+            .get()
+            .then(callback)
+
+        return story_ref
     },
     write: (user, text) => {
-        let docRef = db.collection(this.channel).doc();
 
-        let message = docRef.set({
-            created_by: user,
+        let user_ref = db.collection('users').doc(`${user.id}`);
+        user_ref.set(user);
+
+        let story_ref = db.collection('stories').doc(`${this.story_id}`);
+        let docRef = db.collection('chapters').doc(`${Date.now()}`)
+
+        docRef.set({
+            created_by: user_ref,
+            story: story_ref,
             text: text,
-            date: Date.now()
-        });
+            timestamp: Date.now()
+        })
 
     }
 
