@@ -1,3 +1,4 @@
+require('dotenv').config();
 const http = require('http');
 const commandParts = require('telegraf-command-parts');
 const firestore = require('./firestore');
@@ -21,8 +22,7 @@ server.listen(port, hostname, () => {
   console.log(`Server running at http://${hostname}:${port}/`);
   
   const Telegraf = require('telegraf')
-  // const bot = new Telegraf(process.env.BOT_TOKEN)
-  const bot = new Telegraf('1019091198:AAEvrg-s9MLTBrVv79wabMMP0_YT7QmQlFA')
+  const bot = new Telegraf(process.env.BOT_TOKEN)
   bot.use(commandParts());
   
   firestore.init();

@@ -5,11 +5,13 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node ./app.js"
+    "start": "node ./app.js",
+    "dev": "nodemon ./app.js"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "dotenv": "^8.2.0",
     "firebase-admin": "^8.9.2",
     "firebase-functions": "^3.3.0",
     "telegraf": "^3.36.0",
