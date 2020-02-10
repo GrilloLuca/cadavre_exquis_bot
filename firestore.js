@@ -1,27 +1,22 @@
+
+const admin = require('firebase-admin');
+let serviceAccount = require('./serviceAccountKey.json');
+
+admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount),
+    databaseURL: "https://cadavre-exquis-215311.firebaseio.com"
+});
+
+db = admin.firestore()
+
+var getIncompleteStory = (callback) => {
+    db.collection('stories')
+        .where('complete', '==', false)
+        .limit(1).get()
+        .then(snapshot => snapshot.forEach(doc => callback(doc.id)))
+    }
+
 module.exports = {
-
-    init: () => {
-
-        const admin = require('firebase-admin');
-        let serviceAccount = require('./serviceAccountKey.json');
-
-        admin.initializeApp({
-            credential: admin.credential.cert(serviceAccount),
-            databaseURL: "https://cadavre-exquis-215311.firebaseio.com"
-        });
-        
-        db = admin.firestore()
-        db.collection('stories')
-            .where('complete', '==', false)
-            .limit(1)
-            .get()
-            .then(snapshot => {
-                snapshot.forEach(doc => {
-                    this.story_id = doc.id
-                })
-            })
-
-    },
     setStory: (storyName, callback) => {
 
         let story_ref = db.collection('stories').doc();
@@ -33,7 +28,7 @@ module.exports = {
                     complete: false
                 });
             }
-            this.story_id = story_ref.id
+            story_id = story_ref.id
             callback(snapshot.empty);
         });
     
@@ -55,46 +50,45 @@ module.exports = {
                         ))
                   });
             })
+    },
+    read: (callback) => {
         
-    },
-    getIncompleteStoryId: (callback) => {
-        db.collection('stories')
-            .where('complete', '==', false)
-            .limit(1)
-            .get()
-            .then(snapshot => {
-                snapshot.forEach(doc => {
-                    callback(doc.data().id)
+        getIncompleteStory(story_id => {        
+
+            let story_ref = db.collection('stories').doc(`${story_id}`);
+
+            var arr = []
+            db.collection(`chapters`)
+                .where('story', '==', story_ref)
+                .orderBy('timestamp')
+                .get()
+                .then(snapshot => {
+                    if(snapshot.size != 0) {
+                        snapshot.forEach(doc => {
+                            arr.push(doc.data().text)
+                        });
+                        callback(arr)
+                    }
                 })
-            })
-    },
-    read: (user, callback) => {
-        let user_ref = db.collection('users').doc(`${user.id}`);
-        let story_ref = db.collection('stories').doc(`${this.story_id}`);
-
-        db.collection(`chapters`)
-            .where('created_by', '==', user_ref)
-            .where('story', '==', story_ref)
-            .orderBy('timestamp')
-            .get()
-            .then(callback)
-
-        return story_ref
+        })
     },
     write: (user, text) => {
 
-        console.log(`story_id: ${this.story_id}`)
-        let user_ref = db.collection('users').doc(`${user.id}`);
-        user_ref.set(user);
+        getIncompleteStory(story_id => {       
 
-        let story_ref = db.collection('stories').doc(`${this.story_id}`);
-        let docRef = db.collection('chapters').doc(`${Date.now()}`)
+            let user_ref = db.collection('users').doc(`${user.id}`);
+            user_ref.set(user);
 
-        docRef.set({
-            created_by: user_ref,
-            story: story_ref,
-            text: text,
-            timestamp: Date.now()
+            let story_ref = db.collection('stories').doc(`${story_id}`);
+            let docRef = db.collection('chapters').doc(`${Date.now()}`)
+
+            docRef.set({
+                created_by: user_ref,
+                story: story_ref,
+                text: text,
+                timestamp: Date.now()
+            })
+
         })
 
     }
